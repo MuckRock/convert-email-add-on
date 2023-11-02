@@ -1,5 +1,6 @@
 title: Email Conversion Add-On
 description: When provided a public Google Drive or Dropbox link, it will download the EML/MSG files in the link, convert them to PDF, and upload them to DocumentCloud. Email attachments will be presented for download as a zip file.
+instructions: ''
 type: object
 documents: []
 properties:
