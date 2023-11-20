@@ -6,6 +6,7 @@ will convert them to PDFs and upload them to DocumentCloud
 import os
 import sys
 import stat
+import glob
 import shutil
 import subprocess
 import requests
@@ -38,7 +39,14 @@ class ConvertEmail(AddOn):
         """Uses a java program to convert EML/MSG files to PDFs
         extracts attachments if selected"""
         if self.extract_attachments:
-            bash_cmd = f"java -jar email.jar -a -q {file_path}; mv ./out/EMLs/*attachments* attach;"
+            attachments_pattern = os.path.join(os.path.dirname(file_path), "EMLs", "*attachments*")
+            attachments_dirs = glob.glob(attachments_pattern)
+            if attachments_dirs:
+                for attachments_dir in attachments_dirs:
+                    shutil.move(attachments_dir, "./attach")
+            else:
+                print("No attachments directory found.")
+            bash_cmd = f"java -jar email.jar -q {file_path}"
         else:
             bash_cmd = f"java -jar email.jar -q {file_path}"
         subprocess.call(bash_cmd, shell=True)
