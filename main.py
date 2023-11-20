@@ -103,7 +103,7 @@ class ConvertEmail(AddOn):
                 subprocess.call("zip -q -r attachments.zip attach", shell=True)
                 self.upload_file(open("attachments.zip"))
             else:
-                self.set_message("No attachments found")
+                print("No attachments found")
 
         sfiles = "file" if successes == 1 else "files"
         efiles = "file" if errors == 1 else "files"
