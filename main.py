@@ -92,7 +92,6 @@ class ConvertEmail(AddOn):
                         self.client.documents.upload(f"{file_name_no_ext}.pdf", access=access_level, **kwargs)
                         successes += 1
                     except OSError as e: 
-                        print(f"Unable to upload {file_name_no_ext}.pdf: {e}", file=sys.stderr)
                         errors +=1
                         continue
                         
