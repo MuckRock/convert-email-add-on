@@ -13,9 +13,13 @@ properties:
     title: Attempt Attachment Extraction
     type: boolean
  access_level:
-    title: Access level for uploaded documents (public, private(default), organization)
+    title: Access level for uploaded documents
     type: string
     default: private
+    enum:
+      - private
+      - organization
+      - public
  project_id:
     title: Project ID of the project you would like the documents uploaded to (optional)
     type: integer
