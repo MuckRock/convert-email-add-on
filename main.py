@@ -38,7 +38,7 @@ class ConvertEmail(AddOn):
     def eml_to_pdf(self, file_path):
         """Uses a java program to convert EML/MSG files to PDFs
         extracts attachments if selected"""
-        file_extension = os.path.splitext(os.path.basename(file_path.strip("'")))[1].lower()
+        file_extension = os.path.splitext(os.path.basename(file_path.strip("'")))[1].lower().strip()
         if not (file_extension == ".eml" or file_extension == ".msg"):
             print(f"Skipping non-EML/MSG file with {file_extension} extension")
             return
