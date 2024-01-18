@@ -36,7 +36,6 @@ class ConvertEmail(AddOn):
         downloaded = grab(url, "./out/")
         print("Contents of ./out/ after downloading:")
         print(os.listdir("./out/"))
-        print(lisdir())
         
     def eml_to_pdf(self, file_path):
         """Uses a java program to convert EML/MSG files to PDFs
