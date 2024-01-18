@@ -73,7 +73,7 @@ class ConvertEmail(AddOn):
         project_id = self.data.get("project_id")
         successes = 0
         errors = 0
-         print("Current working directory in main")
+        print("Current working directory in main")
         print(os.getcwd())
         downloaded = grab(url, "./out/")
         print("List of directories in main")
