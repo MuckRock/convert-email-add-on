@@ -33,7 +33,11 @@ class ConvertEmail(AddOn):
         self.set_message("Retrieving EML/MSG files...")
         os.makedirs(os.path.dirname("./out/"), exist_ok=True)
         os.makedirs(os.path.dirname("./attach/"), exist_ok=True)
+        print("Current working directory in fetch_files")
+        print(os.getcwd())
         downloaded = grab(url, "./out/")
+        print("List of directories in fetch_files")
+        print(os.listdir(os.getcwd())
         
     def eml_to_pdf(self, file_path):
         """Uses a java program to convert EML/MSG files to PDFs
