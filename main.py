@@ -73,6 +73,11 @@ class ConvertEmail(AddOn):
         project_id = self.data.get("project_id")
         successes = 0
         errors = 0
+         print("Current working directory in main")
+        print(os.getcwd())
+        downloaded = grab(url, "./out/")
+        print("List of directories in main")
+        print(os.listdir(os.getcwd()))
         for current_path, folders, files in os.walk("./out/"):
             for file_name in files:
                 file_name = os.path.join(current_path, file_name)
