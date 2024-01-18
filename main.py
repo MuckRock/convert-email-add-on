@@ -52,7 +52,7 @@ class ConvertEmail(AddOn):
             else:
                 print("No attachments directory found.")
         
-        bash_cmd = f"java -jar email.jar -q {file_path}"
+        bash_cmd = f"java -jar email.jar {file_path}"
         subprocess.call(bash_cmd, shell=True)
 
     def main(self):
