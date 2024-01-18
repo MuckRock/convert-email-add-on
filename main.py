@@ -36,6 +36,19 @@ class ConvertEmail(AddOn):
         downloaded = grab(url, "./out/")
         print("Contents of ./out/ after downloading:")
         print(os.listdir("./out/"))
+        os.chdir("out")
+        self.strip_white_spaces(os.getcwd())
+        os.chdir("..")
+        
+    def strip_white_spaces(self, file_path):
+        current_directory = os.getcwd()
+        files = os.listdir(current_directory)
+        for file_name in files:
+            if file_name.strip() != file_name:
+                old_file_path = os.path.join(current_directory, file_name)
+                new_file_path = os.path.join(current_directory, file_name.strip())
+                os.rename(old_file_path, new_file_path)
+                print(f'Renamed: {file_name} -> {file_name.strip()}')
         
     def eml_to_pdf(self, file_path):
         """Uses a java program to convert EML/MSG files to PDFs
