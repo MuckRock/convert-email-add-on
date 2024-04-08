@@ -58,7 +58,7 @@ class ConvertEmail(AddOn):
                 old_file_path = os.path.join(current_directory, file_name)
                 new_file_path = os.path.join(current_directory, file_name.strip())
                 os.rename(old_file_path, new_file_path)
-                print(f"Renamed: {file_name} -> {file_name.strip()}")
+                # print(f"Renamed: {file_name} -> {file_name.strip()}")
 
     def eml_to_pdf(self, file_path):
         """Uses a java program to convert EML/MSG files to PDFs
@@ -71,6 +71,8 @@ class ConvertEmail(AddOn):
             return
 
         if self.extract_attachments:
+            bash_cmd = f"java -jar email.jar -a {file_path}"
+            subprocess.call(bash_cmd, shell=True)
             attachments_pattern = os.path.join(
                 os.path.dirname(file_path), "EMLs", "*attachments*"
             )
@@ -80,10 +82,10 @@ class ConvertEmail(AddOn):
                     shutil.move(attachments_dir, "./attach")
             else:
                 print("No attachments directory found.")
-            bash_cmd = f"java -jar email.jar -a {file_path}"
+            
         else:
             bash_cmd = f"java -jar email.jar {file_path}"
-        subprocess.call(bash_cmd, shell=True)
+            subprocess.call(bash_cmd, shell=True)
 
     def main(self):
         """Fetches files from Google Drive/Dropbox,
