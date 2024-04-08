@@ -74,7 +74,7 @@ class ConvertEmail(AddOn):
             bash_cmd = f"java -jar email.jar -a {file_path}"
             subprocess.call(bash_cmd, shell=True)
             attachments_pattern = os.path.join(
-                os.path.dirname(file_path), "EMLs", "*attachments*"
+                os.path.dirname(file_path), "*attachments*"
             )
             attachments_dirs = glob.glob(attachments_pattern)
             if attachments_dirs:
