@@ -14,7 +14,6 @@ from documentcloud.exceptions import APIError
 from clouddl import grab
 
 
-
 class ConvertEmail(AddOn):
     """DocumentCloud Add-On that converts EML/MSG files to PDFs and uploads them to DocumentCloud"""
 
@@ -39,7 +38,9 @@ class ConvertEmail(AddOn):
         try:
             grab(url, "./out/")
         except HTTPError as http_error:
-            self.set_message("There was an issue with downloading emails from the provided URL, please ensure it is public and available.")
+            self.set_message(
+                "There was an issue with downloading emails from the provided URL, please ensure it is public and available."
+            )
             print(f"HTTP Error: {http_error}")
             sys.exit(0)
         print("Contents of ./out/ after downloading:")
@@ -49,7 +50,7 @@ class ConvertEmail(AddOn):
         os.chdir("..")
 
     def strip_white_spaces(self, file_path):
-        """ Strips white space from filename before running it """
+        """Strips white space from filename before running it"""
         current_directory = os.getcwd()
         files = os.listdir(current_directory)
         for file_name in files:
@@ -79,8 +80,9 @@ class ConvertEmail(AddOn):
                     shutil.move(attachments_dir, "./attach")
             else:
                 print("No attachments directory found.")
-
-        bash_cmd = f"java -jar email.jar {file_path}"
+            bash_cmd = f"java -jar email.jar -a {file_path}"
+        else:
+            bash_cmd = f"java -jar email.jar {file_path}"
         subprocess.call(bash_cmd, shell=True)
 
     def main(self):
