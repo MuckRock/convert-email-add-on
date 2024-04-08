@@ -5,18 +5,21 @@ will convert them to PDFs and upload them to DocumentCloud
 """
 import os
 import sys
-import stat
 import glob
 import shutil
 import subprocess
-import requests
+from urllib.error import HTTPError
 from documentcloud.addon import AddOn
+from documentcloud.exceptions import APIError
 from clouddl import grab
+
 
 
 class ConvertEmail(AddOn):
     """DocumentCloud Add-On that converts EML/MSG files to PDFs and uploads them to DocumentCloud"""
+
     extract_attachments = False
+
     def check_permissions(self):
         """The user must be a verified journalist to upload a document"""
         self.set_message("Checking permissions...")
@@ -33,14 +36,20 @@ class ConvertEmail(AddOn):
         self.set_message("Retrieving EML/MSG files...")
         os.makedirs(os.path.dirname("./out/"), exist_ok=True)
         os.makedirs(os.path.dirname("./attach/"), exist_ok=True)
-        downloaded = grab(url, "./out/")
+        try:
+            grab(url, "./out/")
+        except HTTPError as http_error:
+            self.set_message("There was an issue with downloading emails from the provided URL, please ensure it is public and available.")
+            print(f"HTTP Error: {http_error}")
+            sys.exit(0)
         print("Contents of ./out/ after downloading:")
         print(os.listdir("./out/"))
         os.chdir("out")
         self.strip_white_spaces(os.getcwd())
         os.chdir("..")
-        
+
     def strip_white_spaces(self, file_path):
+        """ Strips white space from filename before running it """
         current_directory = os.getcwd()
         files = os.listdir(current_directory)
         for file_name in files:
@@ -48,25 +57,29 @@ class ConvertEmail(AddOn):
                 old_file_path = os.path.join(current_directory, file_name)
                 new_file_path = os.path.join(current_directory, file_name.strip())
                 os.rename(old_file_path, new_file_path)
-                print(f'Renamed: {file_name} -> {file_name.strip()}')
-        
+                print(f"Renamed: {file_name} -> {file_name.strip()}")
+
     def eml_to_pdf(self, file_path):
         """Uses a java program to convert EML/MSG files to PDFs
         extracts attachments if selected"""
-        file_extension = os.path.splitext(os.path.basename(file_path.strip("'")))[1].lower().strip()
+        file_extension = (
+            os.path.splitext(os.path.basename(file_path.strip("'")))[1].lower().strip()
+        )
         if not (file_extension == ".eml" or file_extension == ".msg"):
             print(f"Skipping non-EML/MSG file with {file_extension} extension")
             return
 
         if self.extract_attachments:
-            attachments_pattern = os.path.join(os.path.dirname(file_path), "EMLs", "*attachments*")
+            attachments_pattern = os.path.join(
+                os.path.dirname(file_path), "EMLs", "*attachments*"
+            )
             attachments_dirs = glob.glob(attachments_pattern)
             if attachments_dirs:
                 for attachments_dir in attachments_dirs:
                     shutil.move(attachments_dir, "./attach")
             else:
                 print("No attachments directory found.")
-        
+
         bash_cmd = f"java -jar email.jar {file_path}"
         subprocess.call(bash_cmd, shell=True)
 
@@ -84,7 +97,7 @@ class ConvertEmail(AddOn):
         project_id = self.data.get("project_id")
         successes = 0
         errors = 0
-        for current_path, folders, files in os.walk("./out/"):
+        for current_path, _folders, files in os.walk("./out/"):
             for file_name in files:
                 file_name = os.path.join(current_path, file_name)
                 self.set_message("Attempting to convert EML/MSG files to PDFs...")
@@ -93,7 +106,10 @@ class ConvertEmail(AddOn):
                 try:
                     self.eml_to_pdf(abs_path)
                 except RuntimeError as re:
-                    self.send_mail("Runtime Error for Email Conversion", "Please forward this to info@documentcloud.org \n" + str(re))
+                    self.send_mail(
+                        "Runtime Error for Email Conversion",
+                        "Please forward this to info@documentcloud.org \n" + str(re),
+                    )
                     errors += 1
                     continue
                 else:
@@ -103,13 +119,27 @@ class ConvertEmail(AddOn):
                         else:
                             kwargs = {}
                         self.set_message("Uploading converted file to DocumentCloud...")
-                        file_name_no_ext = os.path.splitext(abs_path)[0].replace("'", "")
-                        self.client.documents.upload(f"{file_name_no_ext}.pdf", access=access_level, **kwargs)
+                        file_name_no_ext = os.path.splitext(abs_path)[0].replace(
+                            "'", ""
+                        )
+                        self.client.documents.upload(
+                            f"{file_name_no_ext}.pdf", access=access_level, **kwargs
+                        )
                         successes += 1
-                    except OSError as e: 
-                        errors +=1
+                    except OSError as e:
+                        errors += 1
+                        print(f"OS Error: {e}")
                         continue
-                        
+                    except APIError as api_error:
+                        error_message = str(api_error)
+                        if "Invalid pk" in error_message:
+                            self.set_message(
+                                "You have provided an incorrect project ID, please try again"
+                            )
+                            sys.exit(0)
+                        else:
+                            # Handle other API errors if needed
+                            print("API Error:", error_message)
 
         if self.extract_attachments:
             attachments_exist = any(os.listdir("./attach"))
