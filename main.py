@@ -156,7 +156,12 @@ class ConvertEmail(AddOn):
         if attachments_dirs:
             with zipfile.ZipFile("attachments.zip", "w") as zipf:
                 for attachments_dir in attachments_dirs:
-                    zipf.write(attachments_dir, arcname=os.path.basename(attachments_dir))
+                # Iterate through all files and directories in the current attachments_dir
+                    for root, _dirs, files in os.walk(attachments_dir):
+                        for file in files:
+                            file_path = os.path.join(root, file)
+                            zip_rel_path = os.path.relpath(file_path, os.path.dirname(attachments_dir))
+                            zipf.write(file_path, arcname=zip_rel_path)
             self.upload_file(open("attachments.zip"))
         else:
             print("No attachments found")
