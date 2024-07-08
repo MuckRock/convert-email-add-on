@@ -8,6 +8,7 @@ import sys
 import glob
 import shutil
 import subprocess
+import zipfile
 from urllib.error import HTTPError
 from documentcloud.addon import AddOn
 from documentcloud.exceptions import APIError
@@ -73,7 +74,7 @@ class ConvertEmail(AddOn):
         if self.extract_attachments:
             bash_cmd = f"java -jar email.jar -a {file_path}"
             subprocess.call(bash_cmd, shell=True)
-            attachments_pattern = os.path.join(
+            """attachments_pattern = os.path.join(
                 "/home/runner/work/convert-email-add-on/convert-email-add-on/out/", "*attachments*"
             )
             attachments_dirs = glob.glob(attachments_pattern)
@@ -81,8 +82,8 @@ class ConvertEmail(AddOn):
                 for attachments_dir in attachments_dirs:
                     shutil.move(attachments_dir, "./attach")
             else:
-                print("No attachments directory found.")
-            
+                print("No attachments directory found.")"""
+
         else:
             bash_cmd = f"java -jar email.jar {file_path}"
             subprocess.call(bash_cmd, shell=True)
@@ -97,6 +98,7 @@ class ConvertEmail(AddOn):
         self.fetch_files(url)
         if "attachments" in self.data:
             self.extract_attachments = True
+        attachments_dirs = []
         access_level = self.data["access_level"]
         project_id = self.data.get("project_id")
         successes = 0
@@ -144,14 +146,19 @@ class ConvertEmail(AddOn):
                         else:
                             # Handle other API errors if needed
                             print("API Error:", error_message)
+                    if self.extract_attachments:
+                        attachments_pattern = os.path.join(
+                            current_path, f"{file_name_no_ext}-attachments"
+                        )
+                        if os.path.exists(attachments_pattern):
+                            attachments_dirs.append(attachments_pattern)
 
-        if self.extract_attachments:
-            attachments_exist = any(os.listdir("./attach"))
-            if attachments_exist:
-                subprocess.call("zip -q -r attachments.zip attach", shell=True)
-                self.upload_file(open("attachments.zip"))
-            else:
-                print("No attachments found")
+        if attachments_dirs:
+            with zipfile.ZipFile("attachments.zip", "w") as zipf:
+                for attachments_dir in attachments_dirs:
+                    zipf.write(attachments_dir, arcname=os.path.basename(attachments_dir))
+        else:
+            print("No attachments found")
 
         sfiles = "file" if successes == 1 else "files"
         efiles = "file" if errors == 1 else "files"
