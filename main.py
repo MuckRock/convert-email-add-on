@@ -93,6 +93,7 @@ class ConvertEmail(AddOn):
         converts them to EMLs, extracts attachments,
         uploads PDFs to DocumentCloud, zips attachments for download.
         """
+        self.client.session.headers.update({'User-Agent': 'Email Conversion Add-On'})
         url = self.data["url"]
         self.check_permissions()
         self.fetch_files(url)
